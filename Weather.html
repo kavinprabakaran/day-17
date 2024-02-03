@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Information and Weather</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container">
+
+    <h1 class="mt-3">Country Information and Weather</h1>
+
+    <div class="form-group mt-3">
+        <label for="countrySelect">Select Country:</label>
+        <select id="countrySelect" class="form-control">
+            <!-- Options will be populated dynamically using JavaScript -->
+        </select>
+    </div>
+
+    <div class="card mt-3" style="display: none;" id="countryCard">
+        <div class="card-body">
+            <h5 class="card-title" id="countryName"></h5>
+            <p class="card-text">Capital: <span id="capital"></span></p>
+            <p class="card-text">Latlng: <span id="latlng"></span></p>
+            <p class="card-text">Region: <span id="region"></span></p>
+        </div>
+    </div>
+
+    <div class="card mt-3" style="display: none;" id="weatherCard">
+        <div class="card-body">
+            <h5 class="card-title" id="weatherTitle"></h5>
+            <p class="card-text">Temperature: <span id="temperature"></span> K</p>
+            <p class="card-text">Description: <span id="weatherDescription"></span></p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const countrySelect = document.getElementById('countrySelect');
+            const countryCard = document.getElementById('countryCard');
+            const weatherCard = document.getElementById('weatherCard');
+            const countryName = document.getElementById('countryName');
+            const capitalElement = document.getElementById('capital');
+            const latlngElement = document.getElementById('latlng');
+            const regionElement = document.getElementById('region');
+            const weatherTitle = document.getElementById('weatherTitle');
+            const temperatureElement = document.getElementById('temperature');
+            const weatherDescriptionElement = document.getElementById('weatherDescription');
+
+            // Fetch countries data from Rest Countries API
+            fetch('https://restcountries.com/v3.1/all')
+                .then(response => response.json())
+                .then(countries => {
+                    countries.forEach(country => {
+                        const option = document.createElement('option');
+                        option.value = country.name.common;
+                        option.textContent = country.name.common;
+                        countrySelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching countries:', error));
+
+            // Event listener for country selection
+            countrySelect.addEventListener('change', function () {
+                const selectedCountry = countrySelect.value;
+
+                // Display country information
+                const selectedCountryData = countries.find(country => country.name.common === selectedCountry);
+                countryName.textContent = selectedCountryData.name.common;
+                capitalElement.textContent = selectedCountryData.capital[0];
+                latlngElement.textContent = selectedCountryData.latlng.join(', ');
+                regionElement.textContent = selectedCountryData.region;
+
+                // Show the country card
+                countryCard.style.display = 'block';
+
+                // Fetch weather data from OpenWeatherMap API
+                const apiKey = '95535c8aa6957755d94d2cd333c138e5';
+                const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCountryData.capital[0]}&appid=${apiKey}`;
+
+                fetch(weatherApiUrl)
+                    .then(response => response.json())
+                    .then(weatherData => {
+                        const temperature = weatherData.main.temp;
+                        const weatherDescription = weatherData.weather[0].description;
+
+                        // Display weather information
+                        weatherTitle.textContent = `Weather in ${selectedCountryData.capital[0]}`;
+                        temperatureElement.textContent = temperature;
+                        weatherDescriptionElement.textContent = weatherDescription;
+
+                        // Show the weather card
+                        weatherCard.style.display = 'block';
+                    })
+                    .catch(error => console.error('Error fetching weather:', error));
+            });
+        });
+    </script>
+</body>
+</html>
